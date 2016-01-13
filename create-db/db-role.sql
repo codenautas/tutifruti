@@ -13,3 +13,4 @@ GRANT CONNECT, TEMPORARY ON DATABASE tutifruti_db TO public;
 GRANT ALL ON DATABASE tutifruti_db TO tuti_owner;
 GRANT CREATE ON DATABASE tutifruti_db TO tuti_node;
 
+ALTER USER tuti_node PASSWORD 'ponerlo_en_el_config_local';

@@ -1,7 +1,7 @@
 -- SCHEMA
 
-CREATE SCHEMA tuti
-  AUTHORIZATION tuti_owner;
+-- DROP SCHEMA IF EXISTS tuti CASCADE;
+CREATE SCHEMA tuti AUTHORIZATION tuti_owner;
 
 GRANT ALL ON SCHEMA tuti TO tuti_owner;
 GRANT USAGE ON SCHEMA tuti TO tuti_node;
