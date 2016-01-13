@@ -130,10 +130,10 @@ Promises.start(function(){
                     categoria: categoria.categoria,
                 });
                 filaCategorias.push(html.th(categoria.cate_desc));
-                filaInputs.push(html.td({id:'categoria_'+categoria.categoria, contenteditable:true, 'tutifruti-pk':pk_Json}));
+                filaInputs.push(html.td({"class": "tutifruti-palabra", id:'categoria_'+categoria.categoria, contenteditable:true, 'tutifruti-pk':pk_Json}));
                 filaControles.push(html.td([
                     html.label({"for":'listo_'+categoria.categoria}, "Listo"),
-                    html.input({id:'listo_'+categoria.categoria, type:'checkbox', 'tutifruti-pk':pk_Json}),
+                    html.input({"class": "tutifruti-listo", id:'listo_'+categoria.categoria, type:'checkbox', 'tutifruti-pk':pk_Json}),
                     html.span({id:'status_'+categoria.categoria, 'tutifruti-pk':pk_Json}),
                 ]));
             })
@@ -154,7 +154,8 @@ Promises.start(function(){
                             html.tr(filaInputs    ), 
                             html.tr(filaControles )
                         ])
-                    ])
+                    ]),
+                    html.script({src:'tutifruti.js'})
                 ])
             ])
             res.end(pagina.toHtmlDoc({title:'tutifruti', pretty:true}));
