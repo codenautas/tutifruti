@@ -43,7 +43,7 @@ var validExts=[
 //     staticExtensions:validExts
 // }));
 
-app.use(session({ secret: 'keyboard cat', resave:false, saveUninitialized:true }));
+// app.use(session({ secret: 'keyboard cat', resave:false, saveUninitialized:true }));
 
 // probar con http://localhost:12348/ajax-example
 app.use('/',MiniTools.serveJade('client',true));
@@ -103,6 +103,7 @@ Promises.start(function(){
         ).fetchUniqueRow().then(function(data){
             console.log('datos traidos',data.row);
             done(null, changing(data.row,{username:data.row.jugador}));
+            console.log('datos enviados',changing(data.row,{username:data.row.jugador}));
         }).catch(function(err){
             console.log('err',err);
             if(err.code==='54011!'){
@@ -117,12 +118,19 @@ Promises.start(function(){
     });
 }).then(function(){
     app.get('/hoja',function(req,res){
-        var pagina=html.body([
-            html.h1('tutifruti'),
-            html.div({"class":'encabezado'},[
-                html.label("partida"), html.span({"class":'partida'},req.session.passport.partida),
-                html.label("jugador"), html.span({"class":'jugador'},req.session.passport.jugador),
-                html.label("letra"), html.span({"class":'letra'},"?"),
+        console.log('session',req.session)
+        console.log('user',req.user)
+        var pagina=html.html([
+            html.head([
+                html.link({href:'tutifruti.css', rel:'stylesheet', type:"text/css"})
+            ]),
+            html.body([
+                html.h1('tutifruti'),
+                html.div({"class":'encabezado'},[
+                    html.label("partida"), html.span({"class":'partida'},req.user.partida),
+                    html.label("jugador"), html.span({"class":'jugador'},req.user.jugador),
+                    html.label("letra"), html.span({"class":'letra'},"?"),
+                ])
             ])
         ])
         /*
@@ -139,7 +147,7 @@ Promises.start(function(){
             throw err;
         }).catch(serveErr);
         */
-        res.end(pagina.toHtmlDoc({title:'tutifruti'}));
+        res.end(pagina.toHtmlDoc({title:'tutifruti', pretty:true}));
     });
 }).catch(function(err){
     console.log('ERROR',err);
