@@ -118,36 +118,50 @@ Promises.start(function(){
     });
 }).then(function(){
     app.get('/hoja',function(req,res){
-        console.log('session',req.session)
-        console.log('user',req.user)
-        var pagina=html.html([
-            html.head([
-                html.link({href:'tutifruti.css', rel:'stylesheet', type:"text/css"})
-            ]),
-            html.body([
-                html.h1('tutifruti'),
-                html.div({"class":'encabezado'},[
-                    html.label("partida"), html.span({"class":'partida'},req.user.partida),
-                    html.label("jugador"), html.span({"class":'jugador'},req.user.jugador),
-                    html.label("letra"), html.span({"class":'letra'},"?"),
+        var filaCategorias=[];
+        var filaInputs=[];
+        var filaControles=[];
+        clientDb.query('SELECT categoria, cate_desc FROM tuti.categorias WHERE partida = $1 ORDER BY categoria',[req.user.partida]).fetchAll().then(function(result){
+            result.rows.forEach(function(categoria){
+                var pk_Json=JSON.stringify({
+                    jugador: req.user.jugador,
+                    partida: req.user.partida,
+                    letra: 'A',
+                    categoria: categoria.categoria,
+                });
+                filaCategorias.push(html.th(categoria.cate_desc));
+                filaInputs.push(html.td({id:'categoria_'+categoria.categoria, contenteditable:true, 'tutifruti-pk':pk_Json}));
+                filaControles.push(html.td([
+                    html.label({"for":'listo_'+categoria.categoria}, "Listo"),
+                    html.input({id:'listo_'+categoria.categoria, type:'checkbox', 'tutifruti-pk':pk_Json}),
+                    html.span({id:'status_'+categoria.categoria, 'tutifruti-pk':pk_Json}),
+                ]));
+            })
+            var pagina=html.html([
+                html.head([
+                    html.link({href:'tutifruti.css', rel:'stylesheet', type:"text/css"})
+                ]),
+                html.body([
+                    html.h1('tutifruti'),
+                    html.div({"class":'encabezado'},[
+                        html.label("partida"), html.span({"class":'partida'},req.user.partida),
+                        html.label("jugador"), html.span({"class":'jugador'},req.user.jugador),
+                        html.label("letra"), html.span({"class":'letra'},"?"),
+                    ]),
+                    html.div({"class":'grilla'},[
+                        html.table([
+                            html.tr(filaCategorias), 
+                            html.tr(filaInputs    ), 
+                            html.tr(filaControles )
+                        ])
+                    ])
                 ])
             ])
-        ])
-        /*
-        clientDb.query('select $1::integer + $2::integer as suma',[params.alfa||1,params.beta||10]).fetchUniqueRow().then(function(result){
-            if(req.method==='POST'){
-                //res.send(''+result.rows[0].suma);
-                res.send(''+result.row.suma);
-            }else{
-                //res.send('<h1>la suma es '+result.rows[0].suma+'<h1>');
-                res.send('<h1>la suma es '+result.row.suma+'<h1>');
-            }
+            res.end(pagina.toHtmlDoc({title:'tutifruti', pretty:true}));
         }).catch(function(err){
-            console.log('err ejemplo/suma',err);
+            console.log('error',err);
             throw err;
         }).catch(serveErr);
-        */
-        res.end(pagina.toHtmlDoc({title:'tutifruti', pretty:true}));
     });
 }).catch(function(err){
     console.log('ERROR',err);
