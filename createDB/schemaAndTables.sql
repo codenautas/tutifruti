@@ -27,7 +27,7 @@ CREATE TABLE tuti.jugadores
 (
   partida integer NOT NULL,
   jugador character varying(50),
-  puntos character varying(50),
+  puntos integer NOT NULL,
   CONSTRAINT jugadores_pkey PRIMARY KEY (partida,jugador)
 )
 WITH (
