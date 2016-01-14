@@ -113,7 +113,7 @@ Promises.start(function(){
 }).then(function(){
     app.get('/hoja',function(req,res){
         var filaCategorias=[html.th()];
-        var filaInputs=[html.td({"class":"letra-grilla"},"A")];
+        var filaInputs=[html.td({"class":"letra-grilla", id:'la-letra'})];
         var filaControles=[html.td({"class":"letra-grilla", id:"cantidad-jugadores"})];
         var filasJugadas=[];
         var filasGrilla=[];
@@ -186,7 +186,8 @@ Promises.start(function(){
                         html.label("letra"), html.span({"class":'letra'},"?"),
                     ]),
                     html.div({"class":'grilla'},[
-                        html.table(filasGrilla)
+                        html.table(filasGrilla),
+                        html.button({id:'nueva-mano', style:"visibility:hidden"},"empezar")
                     ]),
                     html.pre({id:"consola"}),
                     html.script({src:'tutifruti.js'}),
@@ -204,7 +205,8 @@ Promises.start(function(){
         ).fetchOneRowIfExists().then(function(result){
             req.juego={
                 mano_abierta: result.rowCount>0,
-                mano: (result.row||{}).mano
+                mano: (result.row||{}).mano,
+                letra: (result.row||{}).letra
             };
             next();
         }).catch(serveErr(req,res,next));
@@ -264,8 +266,25 @@ Promises.start(function(){
             rta.cant_jugadores=resultJugadores.row.cant_jugadores;
             rta.mano=req.juego.mano;
             rta.jugando=req.juego.mano_abierta;
+            rta.letra=req.juego.letra;
             res.end(JSON.stringify(rta));
         }).catch(serveErr(req,res));
+    });
+    app.post('/services/new',function(req,res){
+        if(!req.juego.mano_abierta){
+            Promises.start(function(){
+                var orden=Math.floor(Math.random()*27);
+                var letra="ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"[orden];
+                return clientDb.query(
+                    "INSERT INTO tuti.manos (partida, mano, estado_mano, letra) SELECT $3, coalesce(max(mano)+1,1), 'abierta', $2 FROM tuti.manos WHERE partida = $1",
+                    [req.user.partida, letra, req.user.partida]
+                ).execute();
+            }).then(function(){
+                res.end("nueva mano");
+            }).catch(serveErr(req,res));
+        }else{
+            res.end("mano finalizada previamente");
+        }
     });
     app.post('/services/stop',function(req,res){
         if(req.juego.mano_abierta){

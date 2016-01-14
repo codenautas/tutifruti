@@ -11,20 +11,11 @@ function desHabilitarTodo(){
     });
 }
 
+var ManoActual='no se';
+
 window.addEventListener("load", function(){
     consola.textContent+='\nanda la consola';
     var checkboxs=document.getElementsByClassName("tutifruti-listo");
-    document.getElementById("boton-parar").addEventListener("click", function(){
-        desHabilitarTodo();
-        AjaxBestPromise.post({
-            url:'services/stop',
-            data:{}
-        }).then(function(result){
-            consola.textContent+='\n'+result;
-        }).catch(function(err){
-            consola.textContent+='\n'+err;
-        });
-    });
     Array.prototype.forEach.call(checkboxs,function(checkbox){
         consola.textContent+='\n encontro los checkboxes';
         checkbox.addEventListener("click",function(event){
@@ -55,15 +46,45 @@ window.addEventListener("load", function(){
             url:'services/status',
             data:{}
         }).then(JSON.parse).then(function(result){
-            document.getElementById("cantidad-jugadores").textContent=result.cant_jugadores;
-            result.jugadas.forEach(function(categoria){
-                var e=document.getElementById("status_"+categoria.categoria).textContent=categoria.cant_jugadas;
-            });
-            if(!result.jugando){
+            if(ManoActual==='no se'){
+                ManoActual=result.mano;
+            }else if(ManoActual!=result.mano){
+                history.go(0);
+            }
+            if(result.jugando){
+                document.getElementById("cantidad-jugadores").textContent=result.cant_jugadores;
+                result.jugadas.forEach(function(categoria){
+                    var e=document.getElementById("status_"+categoria.categoria).textContent=categoria.cant_jugadas;
+                });
+                document.getElementById("la-letra").textContent=result.letra;
+            }else{
+                document.getElementById("nueva-mano").style.visibility='visible';
                 desHabilitarTodo();
             }
         }).catch(function(err){
-            consola.textContent+='\nERR: '+err;
+            consola.textContent+='\nERR: '+err.stack;
         });
     }, 1000);
+    document.getElementById("nueva-mano").addEventListener("click", function(){
+        document.getElementById("nueva-mano").textContent="empezando";
+        AjaxBestPromise.post({
+            url:'services/new',
+            data:{}
+        }).then(function(result){
+            history.go(0);
+        }).catch(function(err){
+            consola.textContent+='\n'+err;
+        });
+    });
+    document.getElementById("boton-parar").addEventListener("click", function(){
+        desHabilitarTodo();
+        AjaxBestPromise.post({
+            url:'services/stop',
+            data:{}
+        }).then(function(result){
+            consola.textContent+='\n'+result;
+        }).catch(function(err){
+            consola.textContent+='\n'+err;
+        });
+    });
 });
