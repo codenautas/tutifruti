@@ -1,8 +1,30 @@
 "use script";
 
+function desHabilitarTodo(){
+    var checkboxs=document.getElementsByClassName("tutifruti-listo");
+    document.getElementById("boton-parar").disabled=true;
+    Array.prototype.forEach.call(checkboxs,function(checkbox){
+        checkbox.disabled=true;
+        var infoPk=JSON.parse(checkbox.getAttribute("tutifruti-pk"));
+        var tdCorrespondiente=document.getElementById("categoria_"+infoPk.categoria);
+        tdCorrespondiente.contentEditable=false;
+    });
+}
+
 window.addEventListener("load", function(){
     consola.textContent+='\nanda la consola';
     var checkboxs=document.getElementsByClassName("tutifruti-listo");
+    document.getElementById("boton-parar").addEventListener("click", function(){
+        desHabilitarTodo();
+        AjaxBestPromise.post({
+            url:'services/stop',
+            data:{}
+        }).then(function(result){
+            consola.textContent+='\n'+result;
+        }).catch(function(err){
+            consola.textContent+='\n'+err;
+        });
+    });
     Array.prototype.forEach.call(checkboxs,function(checkbox){
         consola.textContent+='\n encontro los checkboxes';
         checkbox.addEventListener("click",function(event){
@@ -37,6 +59,9 @@ window.addEventListener("load", function(){
             result.jugadas.forEach(function(categoria){
                 var e=document.getElementById("status_"+categoria.categoria).textContent=categoria.cant_jugadas;
             });
+            if(!result.jugando){
+                desHabilitarTodo();
+            }
         }).catch(function(err){
             consola.textContent+='\nERR: '+err;
         });

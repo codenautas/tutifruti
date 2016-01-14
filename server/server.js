@@ -37,13 +37,6 @@ var validExts=[
     'css','js','manifest'
 ];
 
-// app.use('/unlogged',extensionServeStatic('./client2/unlogged', {
-//     index: [''], 
-//     extensions:[''], 
-//     staticExtensions:validExts
-// }));
-
-// app.use(session({ secret: 'keyboard cat', resave:false, saveUninitialized:true }));
 
 // probar con http://localhost:12348/ajax-example
 app.use('/',MiniTools.serveJade('client',true));
@@ -91,7 +84,7 @@ Promises.start(function(){
     console.log("CONECTED TO", actualConfig.db.database);
     clientDb=client;
     clientDb.query(
-        "DELETE FROM tuti.jugadas WHERE partida, mano IN (SELECT partida, mano FROM tuti.manos WHERE estado_mano<>'fin') RETURNING *"
+        "DELETE FROM tuti.jugadas WHERE (partida, mano) IN (SELECT partida, mano FROM tuti.manos WHERE estado_mano<>'fin') RETURNING *"
     ).fetchAll().then(function(data){
         console.log('jugadas borradas',data.rows);
     }).catch(function(err){
@@ -146,6 +139,9 @@ Promises.start(function(){
                     html.span({id:'status_'+categoria.categoria, 'tutifruti-pk':pk_Json}),
                 ]));
             });
+            filaControles.push(html.td({"class": "fuera-tabla"},[
+                html.button({id:'boton-parar'},"parar")
+            ]));
             return clientDb.query("SELECT mano, letra FROM tuti.manos WHERE partida = $1 AND estado_mano='fin' ORDER BY mano",[req.user.partida]).fetchAll();
         }).then(function(resultManos){
             rowsManos=resultManos.rows;
@@ -194,12 +190,24 @@ Promises.start(function(){
             res.end(pagina.toHtmlDoc({title:'tutifruti', pretty:true}));
         }).catch(serveErr(req,res));
     });
+    app.use('/services',function(req,res,next){
+        clientDb.query(
+            "SELECT mano, letra FROM tuti.manos WHERE partida = $1 AND estado_mano<>'fin'", 
+            [req.user.partida]
+        ).fetchOneRowIfExists().then(function(result){
+            req.juego={
+                mano_abierta: result.rowCount>0,
+                mano: (result.row||{}).mano
+            };
+            next();
+        }).catch(serveErr(req,res,next));
+    });
     app.post('/services/play',function(req,res){
         var info=JSON.parse(req.body.info);
         if(req.user.jugador!=info.pk.jugador || req.user.partida!=info.pk.partida){
             req.end("Hacker detected");
         }else{
-            var jugadaParams=[req.user.partida, 2, req.user.jugador, info.pk.categoria];
+            var jugadaParams=[req.user.partida, req.juego.mano, req.user.jugador, info.pk.categoria];
             if(info.operacion=='JUGAR'){
                 jugadaParams.push(info.palabra);
                 clientDb.query(
@@ -232,7 +240,7 @@ Promises.start(function(){
         }
     });
     app.post('/services/status',function(req,res){
-        var jugadaParams=[req.user.partida, 2, req.user.jugador];
+        var jugadaParams=[req.user.partida, req.juego.mano, req.user.jugador];
         var rta={};
         Promises.start(function(){
             return clientDb.query(
@@ -247,8 +255,24 @@ Promises.start(function(){
             ).fetchUniqueRow();
         }).then(function(resultJugadores){
             rta.cant_jugadores=resultJugadores.row.cant_jugadores;
+            rta.mano=req.juego.mano;
+            rta.jugando=req.juego.mano_abierta;
             res.end(JSON.stringify(rta));
         }).catch(serveErr(req,res));
+    });
+    app.post('/services/stop',function(req,res){
+        if(req.juego.mano_abierta){
+            Promises.start(function(){
+                return clientDb.query(
+                    "UPDATE tuti.manos SET estado_mano='fin' WHERE partida = $1 AND mano = $2",
+                    [req.user.partida, req.juego.mano]
+                ).execute();
+            }).then(function(){
+                res.end("mano finalizada");
+            }).catch(serveErr(req,res));
+        }else{
+            res.end("mano finalizada previamente");
+        }
     });
 }).catch(function(err){
     console.log('ERROR',err);
