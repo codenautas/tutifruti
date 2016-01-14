@@ -54,6 +54,7 @@ var serveErr = MiniTools.serveErr;
 var mime = extensionServeStatic.mime;
 
 app.use('/',extensionServeStatic('./node_modules/ajax-best-promise/bin', {staticExtensions:'js'}));
+app.use('/',extensionServeStatic('./node_modules/es6-promise/dist', {staticExtensions:'js'}));
 
 app.use('/',extensionServeStatic('./client', {
     index: ['index.html'], 
@@ -118,9 +119,9 @@ Promises.start(function(){
     });
 }).then(function(){
     app.get('/hoja',function(req,res){
-        var filaCategorias=[];
-        var filaInputs=[];
-        var filaControles=[];
+        var filaCategorias=[html.th()];
+        var filaInputs=[html.td({"class":"letra-grilla"},"A")];
+        var filaControles=[html.td({"class":"letra-grilla"})];
         clientDb.query('SELECT categoria, cate_desc FROM tuti.categorias WHERE partida = $1 ORDER BY categoria',[req.user.partida]).fetchAll().then(function(result){
             result.rows.forEach(function(categoria){
                 var pk_Json=JSON.stringify({
@@ -139,6 +140,7 @@ Promises.start(function(){
             })
             var pagina=html.html([
                 html.head([
+                    html.meta({charset:"UTF-8"}),
                     html.link({href:'tutifruti.css', rel:'stylesheet', type:"text/css"})
                 ]),
                 html.body([
@@ -157,6 +159,7 @@ Promises.start(function(){
                     ]),
                     html.pre({id:"consola"}),
                     html.script({src:'tutifruti.js'}),
+                    html.script({src:'es6-promise.min.js'}),
                     html.script({src:'ajax-best-promise.js'})
                 ])
             ])
