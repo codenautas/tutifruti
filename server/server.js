@@ -121,7 +121,7 @@ Promises.start(function(){
     app.get('/hoja',function(req,res){
         var filaCategorias=[html.th()];
         var filaInputs=[html.td({"class":"letra-grilla"},"A")];
-        var filaControles=[html.td({"class":"letra-grilla"})];
+        var filaControles=[html.td({"class":"letra-grilla", id:"cantidad-jugadores"})];
         clientDb.query('SELECT categoria, cate_desc FROM tuti.categorias WHERE partida = $1 ORDER BY categoria',[req.user.partida]).fetchAll().then(function(result){
             result.rows.forEach(function(categoria){
                 var pk_Json=JSON.stringify({
@@ -164,12 +164,9 @@ Promises.start(function(){
                 ])
             ])
             res.end(pagina.toHtmlDoc({title:'tutifruti', pretty:true}));
-        }).catch(function(err){
-            console.log('error',err);
-            throw err;
-        }).catch(serveErr);
+        }).catch(serveErr(req,res));
     });
-    app.post('/service',function(req,res){
+    app.post('/services/play',function(req,res){
         var info=JSON.parse(req.body.info);
         if(req.user.jugador!=info.pk.jugador || req.user.partida!=info.pk.partida){
             req.end("Hacker detected");
@@ -196,7 +193,7 @@ Promises.start(function(){
                 })
             }else{
                 clientDb.query(
-                    "DELETE FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador =$3 AND categoria = $4",
+                    "DELETE FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador = $3 AND categoria = $4",
                     jugadaParams
                 ).execute().then(function(){
                     res.end('\n borrada');
@@ -205,6 +202,25 @@ Promises.start(function(){
                 })
             }
         }
+    });
+    app.post('/services/status',function(req,res){
+        var jugadaParams=[req.user.partida, 2, req.user.jugador];
+        var rta={};
+        Promises.start(function(){
+            return clientDb.query(
+                "SELECT categoria, count(*) as cant_jugadas FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador <> $3 GROUP BY categoria",
+                jugadaParams
+            ).fetchAll();
+        }).then(function(resultJugadas){
+            rta.jugadas=resultJugadas.rows;
+            return clientDb.query(
+                "SELECT count(*) as cant_jugadores FROM tuti.jugadores WHERE partida = $1",
+                [req.user.partida]
+            ).fetchUniqueRow();
+        }).then(function(resultJugadores){
+            rta.cant_jugadores=resultJugadores.row.cant_jugadores;
+            res.end(JSON.stringify(rta));
+        }).catch(serveErr(req,res));
     });
 }).catch(function(err){
     console.log('ERROR',err);

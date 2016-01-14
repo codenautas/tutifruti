@@ -15,7 +15,7 @@ window.addEventListener("load", function(){
             tdCorrespondiente.contentEditable=!this.checked;
             consola.textContent+='\n está por enviar el ajax';
             AjaxBestPromise.post({
-                url:'service',
+                url:'services/play',
                 data:{ info:JSON.stringify({
                     pk: infoPk,
                     operacion: this.checked?'JUGAR':'BORRAR',
@@ -28,4 +28,17 @@ window.addEventListener("load", function(){
             });
         });
     });
+    setInterval(function(){
+        AjaxBestPromise.post({
+            url:'services/status',
+            data:{}
+        }).then(JSON.parse).then(function(result){
+            document.getElementById("cantidad-jugadores").textContent=result.cant_jugadores;
+            result.jugadas.forEach(function(categoria){
+                var e=document.getElementById("status_"+categoria.categoria).textContent=categoria.cant_jugadas;
+            });
+        }).catch(function(err){
+            consola.textContent+='\nERR: '+err;
+        });
+    }, 1000);
 });
