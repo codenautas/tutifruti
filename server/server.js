@@ -155,7 +155,9 @@ Promises.start(function(){
                             html.tr(filaControles )
                         ])
                     ]),
-                    html.script({src:'tutifruti.js'})
+                    html.pre({id:"consola"}),
+                    html.script({src:'tutifruti.js'}),
+                    html.script({src:'ajax-best-promise.js'})
                 ])
             ])
             res.end(pagina.toHtmlDoc({title:'tutifruti', pretty:true}));

@@ -10,6 +10,14 @@ window.addEventListener("load", function(){
                 this.checked=false;
             }
             tdCorrespondiente.contentEditable=!this.checked;
+            AjaxBestPromise.post({
+                url:'service',
+                data:{ info:info, ok: this.checked, palabra: tdCorrespondiente.textContent } 
+            }).then(function(result){
+                consola.textContent+='\n'+result;
+            }).catch(function(err){
+                consola.textContent+='\n'+err;
+            });
         });
     });
 });
