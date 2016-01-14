@@ -166,6 +166,9 @@ Promises.start(function(){
             throw err;
         }).catch(serveErr);
     });
+    app.post('/service',function(req,res){
+        res.send(req.body.palabra);
+    });
 }).catch(function(err){
     console.log('ERROR',err);
     console.log('STACK',err.stack);
@@ -173,3 +176,4 @@ Promises.start(function(){
     console.log('***************');
     console.log('REVISE QUE EXISTA LA DB');
 });
+
