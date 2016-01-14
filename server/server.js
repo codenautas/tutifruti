@@ -91,7 +91,7 @@ Promises.start(function(){
     console.log("CONECTED TO", actualConfig.db.database);
     clientDb=client;
     clientDb.query(
-        "DELETE FROM tuti.jugadas WHERE partida IN (SELECT partida FROM tuti.partidas WHERE estado_partida<>'fin') RETURNING *"
+        "DELETE FROM tuti.jugadas WHERE partida, mano IN (SELECT partida, mano FROM tuti.manos WHERE estado_mano<>'fin') RETURNING *"
     ).fetchAll().then(function(data){
         console.log('jugadas borradas',data.rows);
     }).catch(function(err){
@@ -122,8 +122,16 @@ Promises.start(function(){
         var filaCategorias=[html.th()];
         var filaInputs=[html.td({"class":"letra-grilla"},"A")];
         var filaControles=[html.td({"class":"letra-grilla", id:"cantidad-jugadores"})];
-        clientDb.query('SELECT categoria, cate_desc FROM tuti.categorias WHERE partida = $1 ORDER BY categoria',[req.user.partida]).fetchAll().then(function(result){
-            result.rows.forEach(function(categoria){
+        var filasJugadas=[];
+        var filasGrilla=[];
+        var rowsCategorias;
+        var rowsManos;
+        var rowsJugadas;
+        Promises.start(function(){
+            return clientDb.query('SELECT categoria, cate_desc FROM tuti.categorias WHERE partida = $1 ORDER BY categoria',[req.user.partida]).fetchAll();
+        }).then(function(resultCategorias){
+            rowsCategorias=resultCategorias.rows;
+            rowsCategorias.forEach(function(categoria){
                 var pk_Json=JSON.stringify({
                     jugador: req.user.jugador,
                     partida: req.user.partida,
@@ -137,7 +145,31 @@ Promises.start(function(){
                     html.input({"class": "tutifruti-listo", id:'listo_'+categoria.categoria, type:'checkbox', 'tutifruti-pk':pk_Json}),
                     html.span({id:'status_'+categoria.categoria, 'tutifruti-pk':pk_Json}),
                 ]));
-            })
+            });
+            return clientDb.query("SELECT mano, letra FROM tuti.manos WHERE partida = $1 AND estado_mano='fin' ORDER BY mano",[req.user.partida]).fetchAll();
+        }).then(function(resultManos){
+            rowsManos=resultManos.rows;
+            return clientDb.query(
+                "SELECT * FROM tuti.jugadas WHERE partida = $1 AND jugador = $2",
+                [req.user.partida, req.user.jugador]
+            ).fetchAll()
+        }).then(function(resultJugadas){
+            var jugadas={};
+            resultJugadas.rows.forEach(function(jugada){
+                jugadas[jugada.mano]=jugadas[jugada.mano]||{};
+                jugadas[jugada.mano][jugada.categoria]=jugada.palabra;
+            });
+            rowsManos.forEach(function(mano){
+                var fila=[html.td({"class":"letra-grilla"},mano.letra)];
+                rowsCategorias.forEach(function(categoria){
+                    fila.push(html.td((jugadas[mano.mano]||{})[categoria.categoria]||''));
+                });
+                filasJugadas.push(html.tr(fila));
+            });
+            filasGrilla.push(html.tr(filaCategorias));
+            filasGrilla=filasGrilla.concat(filasJugadas);
+            filasGrilla.push(html.tr(filaInputs    ));
+            filasGrilla.push(html.tr(filaControles ));
             var pagina=html.html([
                 html.head([
                     html.meta({charset:"UTF-8"}),
@@ -151,11 +183,7 @@ Promises.start(function(){
                         html.label("letra"), html.span({"class":'letra'},"?"),
                     ]),
                     html.div({"class":'grilla'},[
-                        html.table([
-                            html.tr(filaCategorias), 
-                            html.tr(filaInputs    ), 
-                            html.tr(filaControles )
-                        ])
+                        html.table(filasGrilla)
                     ]),
                     html.pre({id:"consola"}),
                     html.script({src:'tutifruti.js'}),
