@@ -167,7 +167,41 @@ Promises.start(function(){
         }).catch(serveErr);
     });
     app.post('/service',function(req,res){
-        res.send(req.body.palabra);
+        var info=JSON.parse(req.body.info);
+        if(req.user.jugador!=info.pk.jugador || req.user.partida!=info.pk.partida){
+            req.end("Hacker detected");
+        }else{
+            var jugadaParams=[req.user.partida, 2, req.user.jugador, info.pk.categoria];
+            if(info.operacion=='JUGAR'){
+                jugadaParams.push(info.palabra);
+                clientDb.query(
+                    "INSERT INTO tuti.jugadas (partida, mano, jugador, categoria, palabra) VALUES ($1, $2, $3, $4, $5)",
+                    jugadaParams
+                ).execute().catch(function(err){
+                    if(err.code=='23505'){ //clave duplicada
+                        return clientDb.query(
+                            "UPDATE tuti.jugadas SET palabra=$5 WHERE partida = $1 AND mano = $2 AND jugador =$3 AND categoria = $4",
+                            jugadaParams
+                        ).execute();
+                    }else{
+                        throw err;
+                    }
+                }).then(function(){
+                    res.end('\n registrado '+info.palabra);
+                }).catch(function(err){
+                    res.end("\n error al intentar jugar: "+info.palabra+". "+err.code+' '+err);
+                })
+            }else{
+                clientDb.query(
+                    "DELETE FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador =$3 AND categoria = $4",
+                    jugadaParams
+                ).execute().then(function(){
+                    res.end('\n borrada');
+                }).catch(function(err){
+                    res.end("\n error al intentar borrar. "+err.code+' '+err);
+                })
+            }
+        }
     });
 }).catch(function(err){
     console.log('ERROR',err);

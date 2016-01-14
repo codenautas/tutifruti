@@ -22,7 +22,8 @@ CREATE TABLE tuti.jugadores(
   partida integer NOT NULL,
   jugador character varying(50),
   puntos integer NOT NULL,
-  CONSTRAINT jugadores_pkey PRIMARY KEY (partida,jugador)
+  CONSTRAINT jugadores_pkey PRIMARY KEY (partida,jugador),
+  CONSTRAINT jugadores_partidas_fk FOREIGN KEY (partida) REFERENCES tuti.partidas(partida)
 );
 
 ALTER TABLE tuti.jugadores OWNER TO tuti_owner;
@@ -58,12 +59,10 @@ CREATE TABLE tuti.jugadas(
   jugador character varying(50),
   categoria integer NOT NULL,
   palabra character varying(50),
-  CONSTRAINT jugadas_pkey PRIMARY KEY (partida,mano,jugador,categoria,palabra)
+  CONSTRAINT jugadas_pkey PRIMARY KEY (partida,mano,jugador,categoria)
 );
 ALTER TABLE tuti.jugadas
   OWNER TO tuti_owner;
 GRANT ALL ON TABLE tuti.jugadas TO tuti_owner;
 GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE tuti.jugadas TO tuti_node;
-
-
 
