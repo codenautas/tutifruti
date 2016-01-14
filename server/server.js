@@ -142,7 +142,7 @@ Promises.start(function(){
             filaControles.push(html.td({"class": "fuera-tabla"},[
                 html.button({id:'boton-parar'},"parar")
             ]));
-            return clientDb.query("SELECT mano, letra FROM tuti.manos WHERE partida = $1 AND estado_mano='fin' ORDER BY mano",[req.user.partida]).fetchAll();
+            return clientDb.query("SELECT mano, letra, estado_mano FROM tuti.manos WHERE partida = $1 ORDER BY mano",[req.user.partida]).fetchAll();
         }).then(function(resultManos){
             rowsManos=resultManos.rows;
             return clientDb.query(
@@ -151,21 +151,28 @@ Promises.start(function(){
             ).fetchAll()
         }).then(function(resultJugadas){
             var jugadas={};
+            var hayUnaManoAbierta=false;
             resultJugadas.rows.forEach(function(jugada){
                 jugadas[jugada.mano]=jugadas[jugada.mano]||{};
                 jugadas[jugada.mano][jugada.categoria]=jugada.palabra;
             });
             rowsManos.forEach(function(mano){
-                var fila=[html.td({"class":"letra-grilla"},mano.letra)];
-                rowsCategorias.forEach(function(categoria){
-                    fila.push(html.td((jugadas[mano.mano]||{})[categoria.categoria]||''));
-                });
-                filasJugadas.push(html.tr(fila));
+                if(mano.estado_mano=='fin'){
+                    var fila=[html.td({"class":"letra-grilla"},mano.letra)];
+                    rowsCategorias.forEach(function(categoria){
+                        fila.push(html.td((jugadas[mano.mano]||{})[categoria.categoria]||''));
+                    });
+                    filasJugadas.push(html.tr(fila));
+                }else{
+                    hayUnaManoAbierta=true;
+                }
             });
             filasGrilla.push(html.tr(filaCategorias));
             filasGrilla=filasGrilla.concat(filasJugadas);
-            filasGrilla.push(html.tr(filaInputs    ));
-            filasGrilla.push(html.tr(filaControles ));
+            if(hayUnaManoAbierta){
+                filasGrilla.push(html.tr(filaInputs    ));
+                filasGrilla.push(html.tr(filaControles ));
+            }
             var pagina=html.html([
                 html.head([
                     html.meta({charset:"UTF-8"}),
