@@ -115,6 +115,7 @@ Promises.start(function(){
         var filaCategorias=[html.th()];
         var filaInputs=[html.td({"class":"letra-grilla", id:'la-letra'})];
         var filaControles=[html.td({"class":"letra-grilla", id:"cantidad-jugadores"})];
+        var filaValePalabra=[html.td({"class":"letra-grilla",id:"vale-palabra"})];
         var filasJugadas=[];
         var filasGrilla=[];
         var rowsCategorias;
@@ -137,6 +138,12 @@ Promises.start(function(){
                     html.label({"for":'listo_'+categoria.categoria}, "Listo"),
                     html.input({"class": "tutifruti-listo", id:'listo_'+categoria.categoria, type:'checkbox', 'tutifruti-pk':pk_Json}),
                     html.span({id:'status_'+categoria.categoria, 'tutifruti-pk':pk_Json}),
+                ]));
+                filaValePalabra.push(html.td([
+                    html.label({"for":'vale_'+categoria.categoria},"vale"),
+                    html.input({"class":"tuti-fruti-vale",id:'vale_'+categoria.categoria,type:'checkbox','tutifruti-pk':pk_Json}),
+                    html.span({id:'vale_'+categoria.categoria, 'tutifruti-pk':pk_Json}),
+                    html.input({"class":"tutifruti-puntoPorPalabra", id:'puntosPorPalabra_'+categoria.categoria, contenteditable:true, 'tutifruti-pk':pk_Json}),
                 ]));
             });
             filaControles.push(html.td({"class": "fuera-tabla"},[
@@ -169,9 +176,11 @@ Promises.start(function(){
             });
             filasGrilla.push(html.tr(filaCategorias));
             filasGrilla=filasGrilla.concat(filasJugadas);
+            filasGrilla=filasGrilla.concat(filaValePalabra);
             if(hayUnaManoAbierta){
                 filasGrilla.push(html.tr(filaInputs    ));
                 filasGrilla.push(html.tr(filaControles ));
+                filasGrilla=filasGrilla.concat(filaValePalabra);
             }
             var pagina=html.html([
                 html.head([
