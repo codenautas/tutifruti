@@ -11,15 +11,16 @@ function desHabilitarTodo(){
     });
 }
 
+
 var ManoActual='no se';
 
 window.addEventListener("load", function(){
     consola.textContent+='\nanda la consola';
     var checkboxs=document.getElementsByClassName("tutifruti-listo");
     Array.prototype.forEach.call(checkboxs,function(checkbox){
-        consola.textContent+='\n encontro los checkboxes';
+      //  consola.textContent+='\n encontro los checkboxes';
         checkbox.addEventListener("click",function(event){
-            consola.textContent+='\n recibe el click';
+        //    consola.textContent+='\n recibe el click';
             var infoPk=JSON.parse(this.getAttribute("tutifruti-pk"));
             var tdCorrespondiente=document.getElementById("categoria_"+infoPk.categoria);
             if(!tdCorrespondiente.textContent && this.checked){
@@ -85,6 +86,19 @@ window.addEventListener("load", function(){
             consola.textContent+='\n'+result;
         }).catch(function(err){
             consola.textContent+='\n'+err;
+        });
+    });
+    var checkBoxsPuntos=document.getElementsByClassName("tuti-fruti-vale");
+    Array.prototype.forEach.call(checkBoxsPuntos,function(checkbox){
+        consola.textContent+='\n encontro los checkboxes';
+        checkbox.addEventListener("click",function(event){
+            consola.textContent+='\n recibe el click';
+            var infoPk=JSON.parse(checkbox.getAttribute("tutifruti-pk"));
+            var inputCorrespondiente=document.getElementById("puntosPalabra_"+infoPk.categoria);
+            consola.textContent+=inputCorrespondiente.id;
+            consola.textContent+="HOla"+inputCorrespondiente.textContent+"chau";
+            inputCorrespondiente.contentEditable=false;
+            consola.textContent+=inputCorrespondiente.contentEditable;
         });
     });
 });

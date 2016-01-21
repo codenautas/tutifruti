@@ -143,12 +143,20 @@ Promises.start(function(){
                     html.label({"for":'vale_'+categoria.categoria},"vale"),
                     html.input({"class":"tuti-fruti-vale",id:'vale_'+categoria.categoria,type:'checkbox','tutifruti-pk':pk_Json}),
                     html.span({id:'vale_'+categoria.categoria, 'tutifruti-pk':pk_Json}),
-                    html.input({"class":"tutifruti-puntoPorPalabra", id:'puntosPorPalabra_'+categoria.categoria, contenteditable:true, 'tutifruti-pk':pk_Json}),
+                    html.label({"for":'puntosPorPalabra_'+categoria.categoria},"  Puntos:"),
+                    html.input({"class":"tutifruti-puntoPorPalabra", id:'puntosPalabra_'+categoria.categoria, contenteditable:true, 'tutifruti-pk':pk_Json}),
                 ]));
             });
             filaControles.push(html.td({"class": "fuera-tabla"},[
                 html.button({id:'boton-parar'},"parar")
             ]));
+            filaValePalabra.push(html.td({"class": "fuera-tabla"},[
+                html.label({"for":'puntos-totales'},"  Total: "),
+                html.input({id:'puntos-totales', contenteditable:true})
+            ]))
+/*            {"class": "fuera-tabla"}),
+            html.label({id:'puntos-totales',"total"}),
+            html.input({id:'puntos-totales', contenteditable:true})*/
             return clientDb.query("SELECT mano, letra, estado_mano FROM tuti.manos WHERE partida = $1 ORDER BY mano",[req.user.partida]).fetchAll();
         }).then(function(resultManos){
             rowsManos=resultManos.rows;
@@ -263,6 +271,8 @@ Promises.start(function(){
         Promises.start(function(){
             return clientDb.query(
                 "SELECT categoria, count(*) as cant_jugadas FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador <> $3 GROUP BY categoria",
+                //"SELECT categoria, count(categoria) as cant_jugadas FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador <> $3 GROUP BY categoria",
+               // "select j.categoria, count(j.categoria) as cant_jugadas from tuti.categorias u left join (select * from tuti.jugadas where mano = $2 ) j on j.partida=u.partida and j.categoria=u.categoria where u.partida= $1 AND j.jugador <> $3 group by j.categoria;",
                 jugadaParams
             ).fetchAll();
         }).then(function(resultJugadas){
