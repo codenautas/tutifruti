@@ -184,7 +184,7 @@ Promises.start(function(){
             });
             filasGrilla.push(html.tr(filaCategorias));
             filasGrilla=filasGrilla.concat(filasJugadas);
-            filasGrilla=filasGrilla.concat(filaValePalabra);
+            //filasGrilla=filasGrilla.concat(filaValePalabra);
             if(hayUnaManoAbierta){
                 filasGrilla.push(html.tr(filaInputs    ));
                 filasGrilla.push(html.tr(filaControles ));
