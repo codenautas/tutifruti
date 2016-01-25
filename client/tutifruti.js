@@ -95,10 +95,12 @@ window.addEventListener("load", function(){
             consola.textContent+='\n recibe el click';
             var infoPk=JSON.parse(checkbox.getAttribute("tutifruti-pk"));
             var inputCorrespondiente=document.getElementById("puntosPalabra_"+infoPk.categoria);
-            consola.textContent+=inputCorrespondiente.id;
-            consola.textContent+="HOla"+inputCorrespondiente.textContent+"chau";
-            inputCorrespondiente.contentEditable=false;
-            consola.textContent+=inputCorrespondiente.contentEditable;
+            inputCorrespondiente.contentEditable=true;
+            if(this.checked==false){
+                consola.textContent+='\n recibe el SEGUNDO click';
+                inputCorrespondiente.setAttribute("contentEditable", false);
+                consola.textContent+='\n contenido   '+inputCorrespondiente.contentEditable;
+            }
         });
     });
 });

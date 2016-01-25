@@ -144,7 +144,7 @@ Promises.start(function(){
                     html.input({"class":"tuti-fruti-vale",id:'vale_'+categoria.categoria,type:'checkbox','tutifruti-pk':pk_Json}),
                     html.span({id:'vale_'+categoria.categoria, 'tutifruti-pk':pk_Json}),
                     html.label({"for":'puntosPorPalabra_'+categoria.categoria},"  Puntos:"),
-                    html.input({"class":"tutifruti-puntoPorPalabra", id:'puntosPalabra_'+categoria.categoria, contenteditable:true, 'tutifruti-pk':pk_Json}),
+                    html.div({"class":"tutifruti-puntoPorPalabra", id:'puntosPalabra_'+categoria.categoria, contenteditable:false, 'tutifruti-pk':pk_Json}),
                 ]));
             });
             filaControles.push(html.td({"class": "fuera-tabla"},[
