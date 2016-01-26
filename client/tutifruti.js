@@ -90,16 +90,14 @@ window.addEventListener("load", function(){
     });
     var checkBoxsPuntos=document.getElementsByClassName("tuti-fruti-vale");
     Array.prototype.forEach.call(checkBoxsPuntos,function(checkbox){
-        consola.textContent+='\n encontro los checkboxes';
+        var infoPk=JSON.parse(checkbox.getAttribute("tutifruti-pk"));
+        var divCorrespondiente=document.getElementById("puntosPalabra_"+infoPk.categoria);
+        divCorrespondiente.textContent=0;
         checkbox.addEventListener("click",function(event){
-            consola.textContent+='\n recibe el click';
-            var infoPk=JSON.parse(checkbox.getAttribute("tutifruti-pk"));
-            var inputCorrespondiente=document.getElementById("puntosPalabra_"+infoPk.categoria);
-            inputCorrespondiente.contentEditable=true;
+            divCorrespondiente.contentEditable=true;
             if(this.checked==false){
-                consola.textContent+='\n recibe el SEGUNDO click';
-                inputCorrespondiente.setAttribute("contentEditable", false);
-                consola.textContent+='\n contenido   '+inputCorrespondiente.contentEditable;
+                divCorrespondiente.textContent=0;
+                divCorrespondiente.setAttribute("contentEditable", false);
             }
         });
     });
