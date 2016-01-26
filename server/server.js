@@ -150,13 +150,6 @@ Promises.start(function(){
             filaControles.push(html.td({"class": "fuera-tabla"},[
                 html.button({id:'boton-parar'},"parar")
             ]));
-            filaInputs.push(html.td({"class": "fuera-tabla"},[
-                html.label({"for":'puntos-totales'},"  Puntos: "),
-                html.input({id:'puntos-totales', contenteditable:true})
-            ]))
-/*            {"class": "fuera-tabla"}),
-            html.label({id:'puntos-totales',"total"}),
-            html.input({id:'puntos-totales', contenteditable:true})*/
             return clientDb.query("SELECT mano, letra, estado_mano FROM tuti.manos WHERE partida = $1 ORDER BY mano",[req.user.partida]).fetchAll();
         }).then(function(resultManos){
             rowsManos=resultManos.rows;
@@ -179,12 +172,16 @@ Promises.start(function(){
                     });
                     fila.push(html.td({"class": "fuera-tabla"},[
                 html.label({"for":'puntos-totales'},"  Puntos: "),
-                html.input({id:'puntos-totales', contenteditable:true})
+                html.input({id:'puntos-mano-'+mano.mano, contenteditable:true})
             ]));
                     filasJugadas.push(html.tr(fila));
                     
                 }else{
                     hayUnaManoAbierta=true;
+                    filaInputs.push(html.td({"class": "fuera-tabla"},[
+                        html.label({"for":'puntos-totales'},"  Puntos: "),
+                        html.input({id:'puntos-mano-'+mano.mano, contenteditable:true})
+                    ]));
                 }
             });
             filasGrilla.push(html.tr(filaCategorias));
