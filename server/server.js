@@ -150,8 +150,8 @@ Promises.start(function(){
             filaControles.push(html.td({"class": "fuera-tabla"},[
                 html.button({id:'boton-parar'},"parar")
             ]));
-            filaValePalabra.push(html.td({"class": "fuera-tabla"},[
-                html.label({"for":'puntos-totales'},"  Total: "),
+            filaInputs.push(html.td({"class": "fuera-tabla"},[
+                html.label({"for":'puntos-totales'},"  Puntos: "),
                 html.input({id:'puntos-totales', contenteditable:true})
             ]))
 /*            {"class": "fuera-tabla"}),
@@ -177,7 +177,12 @@ Promises.start(function(){
                     rowsCategorias.forEach(function(categoria){
                         fila.push(html.td((jugadas[mano.mano]||{})[categoria.categoria]||''));
                     });
+                    fila.push(html.td({"class": "fuera-tabla"},[
+                html.label({"for":'puntos-totales'},"  Puntos: "),
+                html.input({id:'puntos-totales', contenteditable:true})
+            ]));
                     filasJugadas.push(html.tr(fila));
+                    
                 }else{
                     hayUnaManoAbierta=true;
                 }
