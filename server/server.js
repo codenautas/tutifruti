@@ -141,18 +141,18 @@ Promises.start(function(){
                 ]));
                 filaValePalabra.push(html.td([
                     html.label({"for":'vale_'+categoria.categoria},"vale"),
-                    html.input({"class":"tuti-fruti-vale",id:'vale_'+categoria.categoria,type:'checkbox','tutifruti-pk':pk_Json}),
+                    html.input({"class":"tuti-fruti-vale",id:'vale_'+categoria.categoria,type:'checkbox', 'tutifruti-pk':pk_Json}),
                     html.span({id:'vale_'+categoria.categoria, 'tutifruti-pk':pk_Json}),
                     html.label({"for":'puntosPorPalabra_'+categoria.categoria},"  Puntos:"),
-                    html.div({"class":"tutifruti-puntoPorPalabra", id:'puntosPalabra_'+categoria.categoria, contenteditable:false, 'tutifruti-pk':pk_Json}),
+                    html.div({"class":"tutifruti-puntoPorPalabra", id:'puntosPalabra_'+categoria.categoria, contenteditable:false,'tutifruti-pk':pk_Json}),
                 ]));
             });
             filaControles.push(html.td({"class": "fuera-tabla"},[
                 html.button({id:'boton-parar'},"parar")
             ]));
-            filaValePalabra.push(html.td({"class":"fuera-tabla"},[
+            /*filaValePalabra.push(html.td({"class":"fuera-tabla"},[
                 html.button({id:'boton-sumar'},"sumar")
-            ]));
+            ]));*/
             return clientDb.query("SELECT mano, letra, estado_mano FROM tuti.manos WHERE partida = $1 ORDER BY mano",[req.user.partida]).fetchAll();
         }).then(function(resultManos){
             rowsManos=resultManos.rows;
@@ -173,12 +173,26 @@ Promises.start(function(){
                     rowsCategorias.forEach(function(categoria){
                         fila.push(html.td((jugadas[mano.mano]||{})[categoria.categoria]||''));
                     });
-                    fila.push(html.td({"class": "fuera-tabla"},[
-                html.label({"for":'puntos-totales'},"  Puntos: "),
-                html.input({"class":"puntos-totales",id:'puntos-mano-'+mano.mano, contenteditable:true})
-            ]));
-                    filasJugadas.push(html.tr(fila));
                     
+                    fila.push(html.td({"class": "fuera-tabla"},[
+                        html.label({"for":'puntos-totales'},"  Puntos: "),
+                        html.input({"class":"puntos-totales",id:'puntos-mano-'+mano.mano, contenteditable:true})
+                    ]));
+                    filasJugadas.push(html.tr(fila));
+
+                }else if(mano.estado_mano=='sumar'){
+                    
+                    var fila=[html.td({"class":"letra-grilla"},mano.letra)];
+                    rowsCategorias.forEach(function(categoria){
+                        fila.push(html.td((jugadas[mano.mano]||{})[categoria.categoria]||''));
+                    });
+                    fila.push(html.td({"class": "fuera-tabla"},[
+                        html.label({"for":'puntos-totales'},"  Puntos: "),
+                        html.input({"class":"puntos-totales",id:'puntos-mano-'+mano.mano, contenteditable:true})
+                    ]));
+                    filasJugadas.push(html.tr(fila));
+                    filasJugadas.push(html.tr(filaValePalabra));
+                   
                 }else{
                     hayUnaManoAbierta=true;
                     filaInputs.push(html.td({"class": "fuera-tabla"},[
@@ -193,7 +207,7 @@ Promises.start(function(){
             if(hayUnaManoAbierta){
                 filasGrilla.push(html.tr(filaInputs    ));
                 filasGrilla.push(html.tr(filaControles ));
-                filasGrilla=filasGrilla.concat(filaValePalabra);
+                //filasGrilla=filasGrilla.concat(filaValePalabra);
             }
             var pagina=html.html([
                 html.head([
@@ -209,7 +223,8 @@ Promises.start(function(){
                     ]),
                     html.div({"class":'grilla'},[
                         html.table(filasGrilla),
-                        html.button({id:'nueva-mano', style:"visibility:hidden"},"empezar")
+                        html.button({id:'nueva-mano', style:"visibility:hidden"},"empezar"),
+                        html.button({id:'boton-sumar', style:"visibility:hidden"},"sumar")
                     ]),
                     html.pre({id:"consola"}),
                     html.script({src:'tutifruti.js'}),
@@ -221,8 +236,9 @@ Promises.start(function(){
         }).catch(serveErr(req,res));
     });
     app.use('/services',function(req,res,next){
+        
         clientDb.query(
-            "SELECT mano, letra FROM tuti.manos WHERE partida = $1 AND estado_mano<>'fin'", 
+            "SELECT mano, letra FROM tuti.manos WHERE partida = $1 AND (estado_mano<>'fin' AND estado_mano<>'sumar')", 
             [req.user.partida]
         ).fetchOneRowIfExists().then(function(result){
             req.juego={
@@ -272,6 +288,7 @@ Promises.start(function(){
     });
     app.post('/services/status',function(req,res){
         var jugadaParams=[req.user.partida, req.juego.mano, req.user.jugador];
+       
         var rta={};
         Promises.start(function(){
             return clientDb.query(
@@ -310,9 +327,46 @@ Promises.start(function(){
             res.end("mano finalizada previamente");
         }
     });
+
     app.post('/services/stop',function(req,res){
         if(req.juego.mano_abierta){
             Promises.start(function(){
+                
+                return clientDb.query(
+                    "UPDATE tuti.manos SET estado_mano='sumar' WHERE partida = $1 AND mano = $2",
+                    [req.user.partida, req.juego.mano]
+                ).execute();
+            }).then(function(){
+                res.end("sumar puntos");
+            }).catch(serveErr(req,res));
+        }else{
+            res.end("mano finalizada previamente");
+        }
+    });
+    app.post('/services/sumar',function(req,res){
+        if(!req.juego.mano_abierta){
+            Promises.start(function(){
+            return clientDb.query("SELECT coalesce(max(mano),1) as mano FROM tuti.manos WHERE partida = $1  ",
+                    [req.user.partida]
+                ).execute();            
+            }).then(function(result){
+                return clientDb.query(
+                    "UPDATE tuti.manos SET estado_mano='fin' WHERE partida = $1 AND mano = $2",
+                    [req.user.partida, result.rows[0].mano]
+                ).execute();
+            }).then(function(){
+                res.end("mano finalizada");
+            }).catch(serveErr(req,res));
+        }else{
+            res.end("mano finalizada previamente");
+        }
+    });
+   /* app.post('/services/sumar',function(req,res){
+        
+        if(!req.juego.mano_abierta){
+        
+            Promises.start(function(){
+                
                 return clientDb.query(
                     "UPDATE tuti.manos SET estado_mano='fin' WHERE partida = $1 AND mano = $2",
                     [req.user.partida, req.juego.mano]
@@ -323,7 +377,7 @@ Promises.start(function(){
         }else{
             res.end("mano finalizada previamente");
         }
-    });
+    });*/
 }).catch(function(err){
     console.log('ERROR',err);
     console.log('STACK',err.stack);

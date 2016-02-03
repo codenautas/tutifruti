@@ -11,6 +11,16 @@ function desHabilitarTodo(){
     });
 }
 
+function habilitarPuntos(){
+    var checkboxs=document.getElementsByClassName("tutifruti-puntoPorPalabra");
+    document.getElementById("boton-sumar").disabled=false;
+    Array.prototype.forEach.call(checkboxs,function(checkbox){
+        checkbox.disabled=false;
+        //var infoPk=JSON.parse(checkbox.getAttribute("tutifruti-pk"));
+        //var tdCorrespondiente=document.getElementById("categoria_"+infoPk.categoria);
+        //tdCorrespondiente.contentEditable=false;
+    });
+}
 
 var ManoActual='no se';
 
@@ -43,16 +53,21 @@ window.addEventListener("load", function(){
         });
     });
     setInterval(function(){
+    
         AjaxBestPromise.post({
             url:'services/status',
             data:{}
         }).then(JSON.parse).then(function(result){
+        
             if(ManoActual==='no se'){
                 ManoActual=result.mano;
             }else if(ManoActual!=result.mano){
+            consola.textContent+='\n ManoActual: '+ManoActual;
                 history.go(0);
             }
+             
             if(result.jugando){
+            
                 document.getElementById("cantidad-jugadores").textContent=result.cant_jugadores;
                 result.jugadas.forEach(function(categoria){
                     var e=document.getElementById("status_"+categoria.categoria).textContent=categoria.cant_jugadas;
@@ -60,14 +75,32 @@ window.addEventListener("load", function(){
                 document.getElementById("la-letra").textContent=result.letra;
             }else{
                 document.getElementById("nueva-mano").style.visibility='visible';
-                desHabilitarTodo();
+                document.getElementById("boton-sumar").style.visibility='visible';
+                //desHabilitarTodo();
+                //habilitarPuntos();
             }
         }).catch(function(err){
             consola.textContent+='\nERR: '+err.stack;
         });
     }, 1000);
+    document.getElementById("boton-sumar").addEventListener("click", function(){
+        
+        //document.getElementById("nueva-mano").textContent="empezando";
+        
+        AjaxBestPromise.post({
+            url:'services/sumar',
+            data:{}
+        }).then(function(result){
+        
+            history.go(0);
+        }).catch(function(err){
+            consola.textContent+='\n'+err;
+        });
+    });
     document.getElementById("nueva-mano").addEventListener("click", function(){
+    
         document.getElementById("nueva-mano").textContent="empezando";
+        
         AjaxBestPromise.post({
             url:'services/new',
             data:{}
@@ -77,17 +110,23 @@ window.addEventListener("load", function(){
             consola.textContent+='\n'+err;
         });
     });
-    document.getElementById("boton-parar").addEventListener("click", function(){
-        desHabilitarTodo();
-        AjaxBestPromise.post({
-            url:'services/stop',
-            data:{}
-        }).then(function(result){
-            consola.textContent+='\n'+result;
-        }).catch(function(err){
-            consola.textContent+='\n'+err;
+    var botonParar=document.getElementById("boton-parar");
+    if(botonParar){
+        document.getElementById("boton-parar").addEventListener("click", function(){
+           // desHabilitarTodo();
+            
+            //habilitarPuntos();
+            AjaxBestPromise.post({
+                url:'services/stop',
+                data:{}
+            }).then(function(result){
+                consola.textContent+='\n'+result;
+            }).catch(function(err){
+                consola.textContent+='\n'+err;
+            });
         });
-    });
+    }
+    
     var checkBoxsPuntos=document.getElementsByClassName("tuti-fruti-vale");
     Array.prototype.forEach.call(checkBoxsPuntos,function(checkbox){
         var infoPk=JSON.parse(checkbox.getAttribute("tutifruti-pk"));
