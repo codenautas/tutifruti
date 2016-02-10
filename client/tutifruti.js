@@ -11,17 +11,6 @@ function desHabilitarTodo(){
     });
 }
 
-function habilitarPuntos(){
-    var checkboxs=document.getElementsByClassName("tutifruti-puntoPorPalabra");
-    document.getElementById("boton-sumar").disabled=false;
-    Array.prototype.forEach.call(checkboxs,function(checkbox){
-        checkbox.disabled=false;
-        //var infoPk=JSON.parse(checkbox.getAttribute("tutifruti-pk"));
-        //var tdCorrespondiente=document.getElementById("categoria_"+infoPk.categoria);
-        //tdCorrespondiente.contentEditable=false;
-    });
-}
-
 var ManoActual='no se';
 
 window.addEventListener("load", function(){
@@ -62,7 +51,7 @@ window.addEventListener("load", function(){
             if(ManoActual==='no se'){
                 ManoActual=result.mano;
             }else if(ManoActual!=result.mano){
-            consola.textContent+='\n ManoActual: '+ManoActual;
+                consola.textContent+='\n ManoActual: '+ManoActual;
                 history.go(0);
             }
              
@@ -76,8 +65,7 @@ window.addEventListener("load", function(){
             }else{
                 document.getElementById("nueva-mano").style.visibility='visible';
                 document.getElementById("boton-sumar").style.visibility='visible';
-                //desHabilitarTodo();
-                //habilitarPuntos();
+                if(document.getElementById("boton-parar")){desHabilitarTodo();}
             }
         }).catch(function(err){
             consola.textContent+='\nERR: '+err.stack;
@@ -85,8 +73,18 @@ window.addEventListener("load", function(){
     }, 1000);
     document.getElementById("boton-sumar").addEventListener("click", function(){
         
-        //document.getElementById("nueva-mano").textContent="empezando";
-        
+        var divs=document.getElementsByClassName("tutifruti-puntoPorPalabra");
+        var puntos=0;
+        var infoPk={};
+        Array.prototype.forEach.call(divs,function(div){
+            
+            infoPk=JSON.parse(div.getAttribute("tutifruti-pk"));
+            var divCorrespondiente=document.getElementById("puntosPalabra_"+infoPk.categoria);
+            puntos+=parseInt(divCorrespondiente.textContent);
+        });
+              
+        document.getElementById('puntos-mano'+infoPk.mano).textContent=puntos;
+
         AjaxBestPromise.post({
             url:'services/sumar',
             data:{}
@@ -113,9 +111,8 @@ window.addEventListener("load", function(){
     var botonParar=document.getElementById("boton-parar");
     if(botonParar){
         document.getElementById("boton-parar").addEventListener("click", function(){
-           // desHabilitarTodo();
+            desHabilitarTodo();
             
-            //habilitarPuntos();
             AjaxBestPromise.post({
                 url:'services/stop',
                 data:{}
