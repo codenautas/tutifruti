@@ -301,8 +301,8 @@ Promises.start(function(){
                 //"SELECT categoria, count(*) as cant_jugadas FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador <> $3 GROUP BY categoria",
                 //"SELECT categoria, count(categoria) as cant_jugadas FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador <> $3 GROUP BY categoria",
                // "select j.categoria, count(j.categoria) as cant_jugadas from tuti.categorias u left join (select * from tuti.jugadas where mano = $2 ) j on j.partida=u.partida and j.categoria=u.categoria where u.partida= $1 AND j.jugador <> $3 group by j.categoria;",
-              " SELECT c.categoria, c.cate_desc, coalesce(categorias_de_la_mano_y_sus_cantidades.cantidad_jugadas, 0) AS cantidad FROM tuti.categorias c LEFT JOIN (SELECT categoria, COUNT(*) AS cantidad_jugadas FROM tuti.jugadas WHERE mano= $2 AND partida= $1 AND jugador<> $3 GROUP BY categoria) AS categorias_de_la_mano_y_sus_cantidades ON c.categoria = categorias_de_la_mano_y_sus_cantidades.categoria WHERE c.partida= $1",
-  
+                //" SELECT c.categoria as categoria, c.cate_desc, coalesce(categorias_de_la_mano_y_sus_cantidades.cantidad_jugadas, 0) AS cantidad FROM tuti.categorias c LEFT JOIN (SELECT categoria, COUNT(*) AS cantidad_jugadas FROM tuti.jugadas WHERE mano= $2 AND partida= $1 AND jugador<> $3 GROUP BY categoria) AS categorias_de_la_mano_y_sus_cantidades ON c.categoria = categorias_de_la_mano_y_sus_cantidades.categoria WHERE c.partida= $1",
+                " SELECT c.categoria as categoria, coalesce(categorias_de_la_mano_y_sus_cantidades.cantidad_jugadas, 0) AS cant_jugadas FROM tuti.categorias c LEFT JOIN (SELECT categoria, COUNT(*) AS cantidad_jugadas FROM tuti.jugadas WHERE mano= $2 AND partida= $1 AND jugador<> $3 GROUP BY categoria) AS categorias_de_la_mano_y_sus_cantidades ON c.categoria = categorias_de_la_mano_y_sus_cantidades.categoria WHERE c.partida= $1",
                 jugadaParams
             ).fetchAll();
         }).then(function(resultJugadas){
