@@ -121,8 +121,8 @@ Promises.start(function(){
         var rowsCategorias;
         var rowsManos;
         var rowsJugadas;
+        //var pk_Json={};
         Promises.start(function(){
-
             return clientDb.query('SELECT categoria, cate_desc FROM tuti.categorias WHERE partida = $1 ORDER BY categoria',[req.user.partida]).fetchAll();
         }).then(function(resultCategorias){
             rowsCategorias=resultCategorias.rows;
@@ -135,7 +135,6 @@ Promises.start(function(){
                     letra: 'A',
                     mano: 2
                 });
-                
                 filaCategorias.push(html.th(categoria.cate_desc));
                 filaInputs.push(html.td({"class": "tutifruti-palabra", id:'categoria_'+categoria.categoria, contenteditable:true, 'tutifruti-pk':pk_Json}));
                 filaControles.push(html.td([
@@ -160,6 +159,7 @@ Promises.start(function(){
             return clientDb.query("SELECT mano, letra, estado_mano FROM tuti.manos WHERE partida = $1 ORDER BY mano",[req.user.partida]).fetchAll();
         }).then(function(resultManos){
             rowsManos=resultManos.rows;
+            
             return clientDb.query(
                 "SELECT * FROM tuti.jugadas WHERE partida = $1 AND jugador = $2",
                 [req.user.partida, req.user.jugador]
@@ -171,8 +171,10 @@ Promises.start(function(){
                 jugadas[jugada.mano]=jugadas[jugada.mano]||{};
                 jugadas[jugada.mano][jugada.categoria]=jugada.palabra;
             });
+            
             rowsManos.forEach(function(mano){
-                
+               //var test=JSON.stringify({"mano":mano.mano});
+               //pk_Json.mano=test;
                 var botonSumar=html.td({"class": "fuera-tabla"},[
                         html.label({"for":'puntos-totales'},"  Puntos: "),
                         html.span({"class":"puntos-totales",id:'puntos-mano'+mano.mano, contenteditable:true})
@@ -200,19 +202,19 @@ Promises.start(function(){
                     hayUnaManoAbierta=true;
                     filaInputs.push(botonSumar);
                 }
+                
             });
             var botonPuntos=[html.td({"class": "fuera-tabla"},[
                         html.label({"for":'puntos-totales'},"  Puntos: "),
                         html.div({"class":"puntos-totales",id:'puntos-mano2', contenteditable:true})
                     ])];
-
             filasGrilla.push(html.tr(filaCategorias));
             filasGrilla=filasGrilla.concat(filasJugadas);
             if(hayUnaManoAbierta){
                 filasGrilla.push(html.tr(filaInputs    ));
                 filasGrilla.push(html.tr(filaControles ));
             }
-
+            //pk_Json=JSON.stringify(pk_Json);
             var pagina=html.html([
                 html.head([
                     html.meta({charset:"UTF-8"}),
@@ -296,9 +298,11 @@ Promises.start(function(){
         var rta={};
         Promises.start(function(){
             return clientDb.query(
-                "SELECT categoria, count(*) as cant_jugadas FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador <> $3 GROUP BY categoria",
+                //"SELECT categoria, count(*) as cant_jugadas FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador <> $3 GROUP BY categoria",
                 //"SELECT categoria, count(categoria) as cant_jugadas FROM tuti.jugadas WHERE partida = $1 AND mano = $2 AND jugador <> $3 GROUP BY categoria",
                // "select j.categoria, count(j.categoria) as cant_jugadas from tuti.categorias u left join (select * from tuti.jugadas where mano = $2 ) j on j.partida=u.partida and j.categoria=u.categoria where u.partida= $1 AND j.jugador <> $3 group by j.categoria;",
+              " SELECT c.categoria, c.cate_desc, coalesce(categorias_de_la_mano_y_sus_cantidades.cantidad_jugadas, 0) AS cantidad FROM tuti.categorias c LEFT JOIN (SELECT categoria, COUNT(*) AS cantidad_jugadas FROM tuti.jugadas WHERE mano= $2 AND partida= $1 AND jugador<> $3 GROUP BY categoria) AS categorias_de_la_mano_y_sus_cantidades ON c.categoria = categorias_de_la_mano_y_sus_cantidades.categoria WHERE c.partida= $1",
+  
                 jugadaParams
             ).fetchAll();
         }).then(function(resultJugadas){
